@@ -4,36 +4,30 @@
   margin: 0;
 }
 
-body {
-  background-color: lightgrey;
-  padding: 1em;
-}
-
-h3 {
-  padding: 0;
-}
-
-.page-wrapper {
-  width: 70%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
 .weather-info {
-  position: absolute;
-  top: 1em;
-  left: 6em;
+  padding: 2em;
+  color: white;
   font-size: 50px;
 }
 
+.weather-image {
+  position: fixed;
+  z-index: -1;
+  height: 100%;
+  width: 100%;
+}
+
 .city {
+  display: flex;
+  justify-content: center;
+  color: black;
+  padding: 0.5em;
   text-shadow: 2px 2px lightgray;
 }
 
 .temperature {
-  font-size: 30px;
+  font-size: 80px;
   display: flex;
   justify-content: center;
+  align-items: center;
 }

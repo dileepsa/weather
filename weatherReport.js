@@ -1,13 +1,14 @@
-/* eslint-disable no-eval */
-/* eslint-disable no-magic-numbers */
-
 const { convertToObj } = require('./parseCsv.js');
 const fs = require('fs');
 const { createElement, img } = require('../createElement.js');
 
+const capitalize = (word) => {
+  return word[0].toUpperCase() + word.substring(1);
+};
+
 const format = (obj) => {
-  const city = obj.city;
-  obj.city = city[0].toUpperCase() + city.substring(1);
+  obj.city = capitalize(obj.city);
+  obj.weather = capitalize(obj.weather);
   return obj;
 };
 
@@ -19,17 +20,32 @@ const writeFile = (fileName, content) => {
   return fs.writeFileSync(fileName, content, 'utf-8');
 };
 
-const getLocationInfo = (fileName, location) => {
+const weather = (location) => {
+  return location.temperature < 20 ? 'cloudy' : 'sunny';
+};
+
+const extractHeaders = (data) => {
+  return data.split('\n')[0].split('|');
+};
+
+const extractLocation = (weatherData, place) => {
+  const regEx = eval('/.*' + place + '.*/g');
+  let location = weatherData.match(regEx);
+  location = location.join('').split('|');
+
+  return location;
+};
+
+const getLocationInfo = (fileName, place) => {
   const weatherData = readFile(fileName);
-  const header = weatherData.split('\n')[0].split('|');
-  const regEx = eval('/.*' + location + '.*/g');
+  const headers = extractHeaders(weatherData);
+  let location = extractLocation(weatherData, place);
+  location = convertToObj(headers, location);
 
-  let locationInfo = weatherData.match(regEx);
-  locationInfo = locationInfo.join('').split('|');
-  locationInfo = convertToObj(header, locationInfo);
-  locationInfo = format(locationInfo);
+  location.weather = weather(location);
+  location = format(location);
 
-  return locationInfo;
+  return location;
 };
 
 const cityHtml = (location) => {
@@ -48,25 +64,34 @@ const temperatureHtml = (location) => {
   });
 };
 
+const weatherHtml = (location) => {
+  return createElement({
+    element: 'div',
+    content: location.weather,
+    classes: ['weather']
+  });
+};
+
 const generateHtml = (location) => {
-  const weather = location.temperature < 20 ? 'cloudy' : 'sunny';
-  const image = img(weather, ['weather-image']);
+  const image = img(location.weather, ['weather-image']);
   const city = cityHtml(location);
   const temperature = temperatureHtml(location);
-  const weatherHtml = createElement({
+  const weather = weatherHtml(location);
+
+  const weatherInfo = createElement({
     element: 'div',
-    content: city + temperature,
+    content: city + temperature + weather,
     classes: ['weather-info']
   });
 
-  return image + weatherHtml;
+  return image + weatherInfo;
 };
 
 const main = (dataFile, template) => {
   const location = process.argv[2];
   const cityObj = getLocationInfo(dataFile, location);
-  let html = readFile(template);
   const weatherHtml = generateHtml(cityObj);
+  let html = readFile(template);
 
   html = html.replace(/__CONTENT__/, weatherHtml);
   writeFile('index.html', html);

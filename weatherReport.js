@@ -1,6 +1,15 @@
-const { parseCsv } = require('./parseCsv.js');
+/* eslint-disable no-eval */
+/* eslint-disable no-magic-numbers */
+
+const { convertToObj } = require('./parseCsv.js');
 const fs = require('fs');
 const { createElement, img } = require('../createElement.js');
+
+const format = (obj) => {
+  const city = obj.city;
+  obj.city = city[0].toUpperCase() + city.substring(1);
+  return obj;
+};
 
 const readFile = (fileName) => {
   return fs.readFileSync(fileName, 'utf-8');
@@ -12,14 +21,16 @@ const writeFile = (fileName, content) => {
 
 const getLocationInfo = (fileName, location) => {
   const weatherData = readFile(fileName);
-  const header = weatherData.split('\n')[0] + '\n';
+  const header = weatherData.split('\n')[0].split('|');
   const regEx = eval('/.*' + location + '.*/g');
-  const locationInfo = weatherData.match(regEx);
-  // console.log(locationInfo);
-  return [header, locationInfo.join('')];
-};
 
-// getLocationInfo('./data/weather.csv', 'bangalore');
+  let locationInfo = weatherData.match(regEx);
+  locationInfo = locationInfo.join('').split('|');
+  locationInfo = convertToObj(header, locationInfo);
+  locationInfo = format(locationInfo);
+
+  return locationInfo;
+};
 
 const cityHtml = (location) => {
   return createElement({
@@ -34,32 +45,30 @@ const temperatureHtml = (location) => {
     element: 'div',
     content: location.temperature + ' C',
     classes: ['temperature']
-  })
+  });
 };
 
 const generateHtml = (location) => {
   const weather = location.temperature < 20 ? 'rainy' : 'sunny';
-  const image = img(weather);
+  const image = img(weather, 'This is weather image');
   const city = cityHtml(location);
   const temperature = temperatureHtml(location);
   const weatherHtml = createElement({
     element: 'div',
     content: city + temperature,
     classes: ['weather-info']
-  })
+  });
 
   return image + weatherHtml;
-}
+};
 
 const main = (dataFile, template) => {
   const location = process.argv[2];
-  const [header, locationInfo] = getLocationInfo(dataFile, location);
-  template = readFile(template);
-  fs.writeFileSync('data/selectedCity.csv', header + locationInfo, 'utf-8');
-  const cityObj = parseCsv('./data/selectedCity.csv', '|');
-  const weatherHtml = generateHtml(cityObj[0]);
+  const cityObj = getLocationInfo(dataFile, location);
+  let html = readFile(template);
+  const weatherHtml = generateHtml(cityObj);
 
-  const html = template.replace(/__CONTENT__/, weatherHtml);
+  html = html.replace(/__CONTENT__/, weatherHtml);
   writeFile('index.html', html);
 };
 

@@ -49,7 +49,7 @@ const temperatureHtml = (location) => {
 };
 
 const generateHtml = (location) => {
-  const weather = location.temperature < 20 ? 'rainy' : 'sunny';
+  const weather = location.temperature < 20 ? 'cloudy' : 'sunny';
   const image = img(weather, 'This is weather image');
   const city = cityHtml(location);
   const temperature = temperatureHtml(location);

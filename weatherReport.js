@@ -27,15 +27,18 @@ const createTableData = (data) => {
   })
 };
 
-const createBody = (location) => {
+const createTableRow = (location) => {
   const values = [location.min, location.max];
   const valuesHtml = values.map(createTableData).join('');
 
-  const row = createElement({
+  return createElement({
     element: 'tr',
-    content: valuesHtml
-  });
+    content: valuesHtml,
+  })
+};
 
+const createTBody = (location) => {
+  const row = createTableRow(location);
   const body = createElement({
     element: 'tbody',
     content: row
@@ -51,25 +54,25 @@ const createTableHeader = (header) => {
   })
 };
 
-const createHead = (headers) => {
+const createTHead = (headers) => {
   const headersHtml = headers.map(createTableHeader).join('');
 
-  const head = createElement({
+  const thead = createElement({
     element: 'thead',
     content: headersHtml,
   });
 
-  return head;
+  return thead;
 };
 
 const createTable = (location) => {
   const headers = ['Min', 'Max'];
-  const head = createHead(headers);
-  const body = createBody(location);
+  const thead = createTHead(headers);
+  const tbody = createTBody(location);
 
   const table = createElement({
     element: 'table',
-    content: head + body,
+    content: thead + tbody,
     classes: ['min-max']
   });
 
@@ -103,16 +106,22 @@ const generateHtml = (location) => {
   const weather = weatherHtml(location);
   const minMax = createTable(location);
 
-  const weatherInfo = createElement({
-    element: 'div',
-    content: city + temperature + weather + minMax,
-    classes: ['weather-info']
-  });
+  const content = city + temperature + weather + minMax;
+  const weatherInfo = createDiv(content, ['weather-info']);
 
   return image + weatherInfo;
 };
 
 const weather = (location) => location.temperature < 20 ? 'cloudy' : 'sunny';
+
+const randomNumber = (start, end) => {
+  const diff = end - start;
+  return Math.floor(Math.random() * diff) + start;
+};
+
+const calTemperature = (location) => {
+  return randomNumber(location.min, location.max);
+};
 
 const extractHeaders = (data) => data.split('\n')[0].split('|');
 
@@ -129,7 +138,7 @@ const getLocationInfo = (weatherData, place) => {
 
   let location = extractLocation(weatherData, place);
   location = convertToObj(headers, location);
-
+  location.temperature = calTemperature(location);
   location.weather = weather(location);
   location = format(location);
 

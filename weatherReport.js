@@ -20,13 +20,10 @@ const writeFile = (fileName, content) => {
   return fs.writeFileSync(fileName, content, 'utf-8');
 };
 
-const weather = (location) => {
-  return location.temperature < 20 ? 'cloudy' : 'sunny';
-};
+const weather = (location) => location.temperature < 20 ? 'cloudy' : 'sunny';
 
-const extractHeaders = (data) => {
-  return data.split('\n')[0].split('|');
-};
+const extractHeaders = (data) => data.split('\n')[0].split('|');
+
 
 const extractLocation = (weatherData, place) => {
   const regEx = eval('/.*' + place + '.*/g');
@@ -88,9 +85,9 @@ const generateHtml = (location) => {
 };
 
 const main = (dataFile, template) => {
-  const location = process.argv[2];
-  const cityObj = getLocationInfo(dataFile, location);
-  const weatherHtml = generateHtml(cityObj);
+  const place = process.argv[2];
+  const location = getLocationInfo(dataFile, place);
+  const weatherHtml = generateHtml(location);
   let html = readFile(template);
 
   html = html.replace(/__CONTENT__/, weatherHtml);

@@ -1,5 +1,6 @@
 const { convertToObj } = require('./parseCsv.js');
 const fs = require('fs');
+const { createDiv, createTBody, createTHead, createTag } = require('./htmlUtil.js');
 const { createElement, img } = require('../createElement.js');
 
 const capitalize = (word) => {
@@ -20,84 +21,23 @@ const writeFile = (fileName, content) => {
   return fs.writeFileSync(fileName, content, 'utf-8');
 };
 
-const createTableData = (data) => {
-  return createElement({
-    element: 'td',
-    content: data
-  })
-};
-
-const createTableRow = (location) => {
-  const values = [location.min, location.max];
-  const valuesHtml = values.map(createTableData).join('');
-
-  return createElement({
-    element: 'tr',
-    content: valuesHtml,
-  })
-};
-
-const createTBody = (location) => {
-  const row = createTableRow(location);
-  const body = createElement({
-    element: 'tbody',
-    content: row
-  });
-
-  return body;
-};
-
-const createTableHeader = (header) => {
-  return createElement({
-    element: 'th',
-    content: header
-  })
-};
-
-const createTHead = (headers) => {
-  const headersHtml = headers.map(createTableHeader).join('');
-
-  const thead = createElement({
-    element: 'thead',
-    content: headersHtml,
-  });
-
-  return thead;
-};
-
 const createTable = (location) => {
   const headers = ['Min', 'Max'];
+  const values = [location.min, location.max];
+
   const thead = createTHead(headers);
-  const tbody = createTBody(location);
+  const tbody = createTBody(values);
 
-  const table = createElement({
-    element: 'table',
-    content: thead + tbody,
-    classes: ['min-max']
-  });
-
-  return table;
+  return createTag('table', thead + tbody, ['min-max']);
 };
 
-const createDiv = (content, classes) => {
-  return createElement({
-    element: 'div',
-    content: content,
-    classes: classes
-  })
-};
-
-const weatherHtml = (location) => {
-  return createDiv(location.weather, ['weather']);
-};
+const weatherHtml = (location) => createDiv(location.weather, ['weather']);
 
 const temperatureHtml = (location) => {
   return createDiv(location.temperature + ' °C', ['temperature']);
 };
 
-const cityHtml = (location) => {
-  return createDiv(location.city, ['city']);
-};
+const cityHtml = (location) => createDiv(location.city, ['city']);
 
 const generateHtml = (location) => {
   const image = img(location.weather, ['weather-image']);
@@ -128,8 +68,13 @@ const extractHeaders = (data) => data.split('\n')[0].split('|');
 const extractLocation = (weatherData, place) => {
   const regEx = eval('/.*' + place + '.*/g');
   let location = weatherData.match(regEx);
-  location = location.join('').split('|');
 
+  if (location === null) {
+    console.log('Place not found !!!');
+    process.exit(1);
+  };
+
+  location = location.join('').split('|');
   return location;
 };
 
@@ -140,9 +85,8 @@ const getLocationInfo = (weatherData, place) => {
   location = convertToObj(headers, location);
   location.temperature = calTemperature(location);
   location.weather = weather(location);
-  location = format(location);
 
-  return location;
+  return format(location);
 };
 
 const main = (dataFile, template) => {
@@ -152,7 +96,6 @@ const main = (dataFile, template) => {
   const weatherHtml = generateHtml(location);
 
   let html = readFile(template);
-
   html = html.replace(/__CONTENT__/, weatherHtml);
   writeFile('index.html', html);
 };

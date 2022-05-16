@@ -14,11 +14,19 @@ const format = (obj) => {
 };
 
 const readFile = (fileName) => {
-  return fs.readFileSync(fileName, 'utf-8');
+  try {
+    return fs.readFileSync(fileName, 'utf-8');
+  } catch (error) {
+    console.log(error.message);
+  }
 };
 
 const writeFile = (fileName, content) => {
-  return fs.writeFileSync(fileName, content, 'utf-8');
+  try {
+    return fs.writeFileSync(fileName, content, 'utf-8')
+  } catch (error) {
+    console.log(error.message);
+  }
 };
 
 const createTable = (location) => {
@@ -81,8 +89,8 @@ const extractLocation = (weatherData, place) => {
 const getLocationInfo = (weatherData, place) => {
   const headers = extractHeaders(weatherData);
 
-  let location = extractLocation(weatherData, place);
-  location = convertToObj(headers, location);
+  const locationRecord = extractLocation(weatherData, place);
+  const location = convertToObj(headers, locationRecord);
   location.temperature = calTemperature(location);
   location.weather = weather(location);
 

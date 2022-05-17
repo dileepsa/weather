@@ -1,7 +1,7 @@
 const { convertToObj } = require('./parseCsv.js');
 const fs = require('fs');
 const { createDiv, createTBody, createTHead, createTag } = require('./htmlUtil.js');
-const { createElement, img } = require('../createElement.js');
+const { createElement, img } = require('./createElement.js');
 
 const capitalize = (word) => {
   return word[0].toUpperCase() + word.substring(1);
